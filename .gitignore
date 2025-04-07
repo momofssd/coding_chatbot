@@ -1,0 +1,36 @@
+# Python bytecode and cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment directories
+venv/
+.env/
+env/
+
+# Environment files
+.env
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Editor/IDE files
+.vscode/
+.idea/
+
+# Test files (if you don't want to track them)
+test.py
+
+# Docker-related files (optional, if you don't want to track them in Git)
+docker-compose.yml
+*.dockerignore
+
+# macOS-specific files
+.DS_Store
+
+# Dependency directories (if using pipenv or poetry)
+Pipfile.lock
+poetry.lock

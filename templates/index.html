@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AI Chatbot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>AI Chatbot</h1>
+    </header>
+
+    <div class="container">
+        <main>
+            <div class="sidebar">
+                <div class="api-status">
+                    <h3>Azure OpenAI API Status</h3>
+                    <div id="api-status" class="status {{ 'success' if api_key_status.valid else 'error' }}">
+                        {{ api_key_status.message }}
+                    </div>
+                </div>
+
+                <div class="model-selector">
+                    <h3>Model</h3>
+                    <select id="model-select">
+                        <option value="gpt-4o-mini">GPT-4o Mini</option>
+                        <option value="gpt-35-turbo">GPT-3.5 Turbo</option>
+                        <option value="gpt-4o">GPT-4o</option>
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button id="clear-chat" class="clear-btn">Clear Chat</button>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div id="chat-history" class="chat-history">
+                    <div class="message bot-message">
+                        Hello! I'm your AI assistant. How can I help you today?
+                    </div>
+                </div>
+
+<!-- Replace this in your index.html -->
+            <div class="chat-input">
+                <textarea id="user-input" placeholder="Type your message..." rows="3"></textarea>
+                <button id="send-btn">Send</button>
+            </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+
+</body>
+</html>
