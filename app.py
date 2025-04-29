@@ -18,7 +18,7 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
 CORS(app)
 
 # Azure OpenAI Configuration
-AZURE_ENDPOINT = "https://momofssd1.openai.azure.com/"
+AZURE_ENDPOINT = "https://jaym9-m8kcm8r1-eastus2.openai.azure.com/"
 AZURE_API_VERSION = "2024-05-01-preview"
 
 # Retrieve the API key from environment variables
@@ -27,6 +27,25 @@ OPENAI_API_KEY = os.getenv("AZURE_API_KEY")
 if not OPENAI_API_KEY:
     print("API key not found. Please set AZURE_API_KEY in your .env file.")
     OPENAI_API_KEY = "dummy_key"  # Set dummy key for development
+
+# Enhanced system prompt for a coding assistant
+CODING_ASSISTANT_PROMPT = """You are an expert coding assistant specializing in providing accurate, logical, and well-explained solutions to programming problems.
+
+Follow these guidelines when responding:
+1. Always analyze the problem thoroughly before suggesting solutions
+2. Provide code that is:
+   - Efficient and optimized
+   - Well-commented
+   - Following best practices for the language
+   - Robust with error handling where appropriate
+3. Explain your reasoning and logic in detail
+4. When providing code examples, use proper syntax highlighting with markdown code blocks
+5. Include unit tests or examples of how to use the code when relevant
+6. Suggest potential edge cases and how to handle them
+7. If you're unsure about any aspect, acknowledge the limitation and suggest alternatives
+8. Format your responses with appropriate headings, lists, and emphasis for readability
+
+Your goal is to help users write high-quality, maintainable code and understand programming concepts deeply."""
 
 # Function to validate OpenAI API key
 def validate_api_key():
@@ -37,11 +56,11 @@ def validate_api_key():
             azure_endpoint=AZURE_ENDPOINT
         )
         client.models.list()
-        return True, "✅ Connection is configured"
+        return True, "Connection is configured"
     except Exception as e:
-        return False, f"❌ API Key validation failed. Error: {e}"
+        return False, f"API Key validation failed. Error: {e}"
 
-# Function to get chat response
+# Function to get chat response with improved parameters
 def get_chat_response(messages, model="gpt-4o-mini"):
     client = AzureOpenAI(
         api_key=OPENAI_API_KEY,
@@ -49,14 +68,16 @@ def get_chat_response(messages, model="gpt-4o-mini"):
         azure_endpoint=AZURE_ENDPOINT
     )
     try:
+        # Adjusted parameters for better reasoning and accuracy
         response = client.chat.completions.create(
             model=model,
             messages=messages,
-            temperature=0.7,
-            top_p=0.95,
+            temperature=0.3,  # Lower temperature for more accurate/consistent responses
+            top_p=0.90,
             seed=42,
-            frequency_penalty=0,
-            presence_penalty=0,
+            frequency_penalty=0.3,  # Slight increase to avoid repetition
+            presence_penalty=0.1,   # Slight increase to encourage diverse responses
+            max_tokens=2048,        # Ensure enough tokens for comprehensive answers
         )
         content = response.choices[0].message.content
         
@@ -70,7 +91,7 @@ def get_chat_response(messages, model="gpt-4o-mini"):
         
         return content, usage_info
     except Exception as e:
-        print(f"⚠ Error calling OpenAI API: {e}")
+        print(f"Error calling OpenAI API: {e}")
         return f"Error: {str(e)}", None
 
 # Routes
@@ -94,7 +115,7 @@ def chat():
     # Get conversation history from session or initialize it
     if 'conversation' not in session:
         session['conversation'] = [
-            {"role": "system", "content": "You are a helpful AI assistant. Format your responses using Markdown for better readability. Use headers, lists, code blocks, bold, italic, etc. when appropriate."}
+            {"role": "system", "content": CODING_ASSISTANT_PROMPT}
         ]
     
     # Add user message to conversation
@@ -106,7 +127,7 @@ def chat():
     # Add assistant response to conversation
     session['conversation'].append({"role": "assistant", "content": response})
     
-    # Limit conversation history (optional)
+    # Limit conversation history (optional but important for token management)
     if len(session['conversation']) > 20:
         # Keep system message and last 10 exchanges
         session['conversation'] = [session['conversation'][0]] + session['conversation'][-19:]
@@ -122,7 +143,7 @@ def chat():
 @app.route('/api/clear-chat', methods=['POST'])
 def clear_chat():
     session['conversation'] = [
-        {"role": "system", "content": "You are a helpful AI assistant."}
+        {"role": "system", "content": CODING_ASSISTANT_PROMPT}
     ]
     session.modified = True
     return jsonify({'status': 'success', 'message': 'Conversation cleared'})
@@ -132,4 +153,3 @@ if __name__ == "__main__":
     is_valid, message = validate_api_key()
     print(message)
     app.run(host='0.0.0.0', port=port, debug=True)
-
