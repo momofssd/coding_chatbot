@@ -10,7 +10,6 @@ html, body {
   overflow: hidden;
 }
 
-
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   line-height: 1.6;
@@ -25,7 +24,7 @@ header {
   background-color: #ffffff;
   color: #202123;
   text-align: center;
-  padding: 1rem;
+  padding: .5rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid #e5e5e5;
 }
@@ -37,7 +36,7 @@ header h1 {
 }
 
 .container {
-  width:85%;
+  width: 85%;
   margin: 0 auto;
   padding: 1rem;
   flex-grow: 1;
@@ -135,7 +134,7 @@ main {
   border: none;
   border-radius: 8px;
   background-color: #f3f4f6;
-  color: black;
+  color: #4b5563;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -217,7 +216,7 @@ main {
   background-color: #f3f4f6;
   align-self: flex-end;
   margin-left: auto;
-  border: 1px solid #e5e7eb;
+  border-right: 3px solid #0069d9;
 }
 
 .user-input-pre {
@@ -231,7 +230,7 @@ main {
 
 .bot-message {
   background-color: #f8f9fa;
-  border-left: 3px solid #1e88e5;
+  border-left: 3px solid #a855f7;
 }
 
 .token-usage {
@@ -251,8 +250,6 @@ main {
   background-color: #ffffff;
   position: relative;
   align-items: flex-end;
-  min-height: 82px; /* Base height to maintain consistent UI */
-  transition: all 0.3s ease;
 }
 
 #user-input {
@@ -263,14 +260,12 @@ main {
   outline: none;
   white-space: pre-wrap;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  resize: vertical;
-  min-height: 50px; 
-  max-height: 300px;
+  resize: none;
+  min-height: 50px;
+  max-height: 200px;
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   font-size: 0.95rem;
-  overflow-y: auto;
-  line-height: 1.5;
 }
 
 #user-input:focus {
@@ -284,13 +279,11 @@ main {
   border: none;
   border-radius: 12px;
   background-color: #f3f4f6;
-  color: black;
+  color: #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
   height: 50px;
-  min-height: 50px;
-  align-self: flex-end;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,7 +291,7 @@ main {
 
 #send-btn:hover {
   background-color: #1e88e5;
-  color:white
+  color: white;
 }
 
 #send-btn:active {
@@ -315,7 +308,7 @@ main {
 
 .loader {
   border: 3px solid rgba(168, 85, 247, 0.2);
-  border-top: 3px solid #1e88e5;
+  border-top: 3px solid #a855f7;
   border-radius: 50%;
   width: 22px;
   height: 22px;
@@ -389,7 +382,8 @@ main {
   border-radius: 4px;
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.9em;
-  color: #8b5cf6;
+  font-weight: bold;
+  color: #df0505;
   border: 1px solid #e5e7eb;
 }
 
@@ -402,7 +396,7 @@ main {
   position: relative;
 }
 
-/* .bot-message pre code {
+.bot-message pre code {
   background-color: transparent;
   padding: 0;
   color: #e5e7eb;
@@ -411,7 +405,7 @@ main {
   display: block;
   line-height: 1.6;
   border: none;
-} */
+}
 
 .copy-code-button {
   position: absolute;
@@ -445,14 +439,14 @@ pre:hover .copy-code-button {
 }
 
 .bot-message a {
-  color: #8b5cf6;
+  color: #1e88e5;
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .bot-message a:hover {
   text-decoration: underline;
-  color: #7c3aed;
+  color: #1e88e5;
 }
 
 .bot-message table {
