@@ -6,6 +6,9 @@ from openai import AzureOpenAI
 from dotenv import load_dotenv
 from flask_cors import CORS
 
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import SystemMessage, UserMessage
+from azure.core.credentials import AzureKeyCredential
 # Force UTF-8 encoding for output
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -28,24 +31,8 @@ if not OPENAI_API_KEY:
     print("API key not found. Please set AZURE_API_KEY in your .env file.")
     OPENAI_API_KEY = "dummy_key"  # Set dummy key for development
 
-# Enhanced system prompt for a coding assistant
-CODING_ASSISTANT_PROMPT = """You are an expert coding assistant specializing in providing accurate, logical, and well-explained solutions to programming problems.
-
-Follow these guidelines when responding:
-1. Always analyze the problem thoroughly before suggesting solutions
-2. Provide code that is:
-   - Efficient and optimized
-   - Well-commented
-   - Following best practices for the language
-   - Robust with error handling where appropriate
-3. Explain your reasoning and logic in detail
-4. When providing code examples, use proper syntax highlighting with markdown code blocks
-5. Include unit tests or examples of how to use the code when relevant
-6. Suggest potential edge cases and how to handle them
-7. If you're unsure about any aspect, acknowledge the limitation and suggest alternatives
-8. Format your responses with appropriate headings, lists, and emphasis for readability
-
-Your goal is to help users write high-quality, maintainable code and understand programming concepts deeply."""
+# Simplified system prompt to reduce session size
+CODING_ASSISTANT_PROMPT = """You are an expert coding assistant. Write efficient, well-commented code following best practices. Explain logic clearly and use markdown for code blocks."""
 
 # Function to validate OpenAI API key
 def validate_api_key():
@@ -77,7 +64,7 @@ def get_chat_response(messages, model="gpt-4o-mini"):
             seed=42,
             frequency_penalty=0.3,  # Slight increase to avoid repetition
             presence_penalty=0.1,   # Slight increase to encourage diverse responses
-            max_tokens=2048,        # Ensure enough tokens for comprehensive answers
+            # max_tokens=2048,        # Ensure enough tokens for comprehensive answers
         )
         content = response.choices[0].message.content
         
@@ -89,6 +76,43 @@ def get_chat_response(messages, model="gpt-4o-mini"):
             "total_tokens": usage.total_tokens
         }
         
+        return content, usage_info
+    except Exception as e:
+        print(f"Error calling OpenAI API: {e}")
+        return f"Error: {str(e)}", None
+
+
+endpoint = os.getenv("AZURE_INFERENCE_SDK_ENDPOINT", "https://jaym9-m8kcm8r1-eastus2.services.ai.azure.com/models")
+
+key = os.getenv("AZURE_API_KEY")
+
+def get_chat_response_grok(messages, model="grok-3-mini"):
+    client = ChatCompletionsClient(endpoint=endpoint, credential=AzureKeyCredential(key))
+    try:
+        # Convert messages to the format expected by ChatCompletionsClient
+        formatted_messages = []
+        for msg in messages:
+            if msg["role"] == "system":
+                formatted_messages.append(SystemMessage(content=msg["content"]))
+            elif msg["role"] == "user":
+                formatted_messages.append(UserMessage(content=msg["content"]))
+            # Skip assistant messages as they're part of the conversation history
+
+        response = client.complete(
+            messages=formatted_messages,
+            model=model,
+            temperature=0.3  # Lower temperature for more accurate/consistent responses
+        )
+
+        content = response.choices[0].message.content
+
+        usage = response.usage
+        usage_info = {
+        "model": model,
+        "prompt_tokens": usage.prompt_tokens,
+        "completion_tokens": usage.completion_tokens,
+        "total_tokens": usage.total_tokens
+            }
         return content, usage_info
     except Exception as e:
         print(f"Error calling OpenAI API: {e}")
@@ -121,16 +145,27 @@ def chat():
     # Add user message to conversation
     session['conversation'].append({"role": "user", "content": user_message})
     
-    # Get response from OpenAI
-    response, usage = get_chat_response(session['conversation'], model)
+    # Get response based on model selection
+    if model == "grok-3-mini":
+        # For GROK, only keep system message and current user message
+        grok_messages = [
+            session['conversation'][0],  # system message
+            {"role": "user", "content": user_message}  # current message
+        ]
+        response, usage = get_chat_response_grok(grok_messages, model)
+    else:
+        response, usage = get_chat_response(session['conversation'], model)
     
     # Add assistant response to conversation
     session['conversation'].append({"role": "assistant", "content": response})
     
-    # Limit conversation history (optional but important for token management)
-    if len(session['conversation']) > 20:
-        # Keep system message and last 10 exchanges
-        session['conversation'] = [session['conversation'][0]] + session['conversation'][-19:]
+    # Limit conversation history
+    if len(session['conversation']) > 6:
+        # Keep system message and last 2 exchanges
+        session['conversation'] = [
+            session['conversation'][0],  # system message
+            *session['conversation'][-4:]  # last 2 exchanges (user + assistant messages)
+        ]
     
     # Save conversation to session
     session.modified = True
