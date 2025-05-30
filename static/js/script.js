@@ -48,33 +48,43 @@ Let me know what you're working on today!`;
     }
   
     function processMessageContent(content) {
-      // Configure marked options for better code highlighting
-      marked.setOptions({
-          breaks: true,
-          gfm: true,
-          pedantic: false,
-          highlight: function(code, language) {
-              if (language && hljs.getLanguage(language)) {
-                  try {
-                      return hljs.highlight(code, { language }).value;
-                  } catch (err) {}
-              }
-              return hljs.highlightAuto(code).value;
-          }
-      });
-      
-      // Convert markdown to HTML
-      const html = marked.parse(content);
-      
-      // Initialize syntax highlighting on all code blocks
-      setTimeout(() => {
-          document.querySelectorAll('pre code').forEach((block) => {
-              hljs.highlightElement(block);
-          });
-      }, 0);
-      
-      return html;
-  }
+        // Configure marked options for better code highlighting and security
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            pedantic: false,
+            highlight: function(code, language) {
+                // Escape HTML characters in code blocks
+                code = code.replace(/[&<>"']/g, char => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                })[char]);
+                
+                if (language && hljs.getLanguage(language)) {
+                    try {
+                        return hljs.highlight(code, { language }).value;
+                    } catch (err) {}
+                }
+                return hljs.highlightAuto(code).value;
+            },
+            sanitize: true // Enable built-in sanitizer
+        });
+        
+        // Convert markdown to HTML
+        const html = marked.parse(content);
+        
+        // Initialize syntax highlighting on all code blocks
+        setTimeout(() => {
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }, 0);
+        
+        return html;
+    }
   
     function showLoading() {
         const loadingDiv = document.createElement('div');
@@ -113,21 +123,23 @@ Let me know what you're working on today!`;
     async function sendMessage() {
         const message = userInput.value.trim();
         if (!message) return;
-  
+
         addMessage(message, true);
         userInput.value = '';
         showLoading();
-  
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     message: message,
                     model: modelSelect.value
-                })
+                }),
+                credentials: 'same-origin' // This helps manage cookies better
             });
   
             const data = await response.json();
