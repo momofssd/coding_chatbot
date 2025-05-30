@@ -9,3 +9,7 @@ Flask-Cors==4.0.1
 
 # Load environment variables from .env file
 python-dotenv==1.0.1
+
+azure-ai-inference>=1.0.0
+azure-core>=1.29.4
+
